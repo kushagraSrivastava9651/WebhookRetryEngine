@@ -3,10 +3,10 @@
 ## Candidate
 
 - **Name:** Kushagra Srivastava
-- **Email:** _(add your email)_
-- **GitHub:** _(add your GitHub profile or repo URL)_
+- **Email:** *Kushagra9651@gmail.com*
+- **GitHub:** [https://github.com/kushagraSrivastava9651/WebhookRetryEngine](https://github.com/kushagraSrivastava9651/WebhookRetryEngine)
 - **Selected problem:** Problem 2 — Webhook Retry Engine
-- **Demo video:** https://drive.google.com/file/d/1N4R_I1bbeDpGVcFYf6U7vWuKsJVbBGS4/view?usp=sharing
+- **Demo video:** [https://drive.google.com/file/d/1N4R_I1bbeDpGVcFYf6U7vWuKsJVbBGS4/view?usp=sharing](https://drive.google.com/file/d/1N4R_I1bbeDpGVcFYf6U7vWuKsJVbBGS4/view?usp=sharing)
 
 ## Run the project
 
@@ -14,16 +14,18 @@
 
 **Environment variables** (names only; no secrets committed):
 
-| Name | Default | Purpose |
-| --- | --- | --- |
-| `WEBHOOK_URL` | `http://127.0.0.1:8090/webhook` | Outbound delivery target |
-| `HTTP_ADDR` | `8080` | API listen port |
-| `DATABASE_PATH` | `webhook.db` | SQLite file path |
-| `MAX_ATTEMPTS` | `5` | Attempt budget |
-| `BASE_DELAY_MS` | `1000` | Backoff base (`delay = base * 2^(n-1)`) |
-| `DELIVERY_TIMEOUT_MS` | `5000` | Outbound HTTP timeout |
-| `POLL_INTERVAL_MS` | `200` | Worker poll interval |
-| `FAKE_RECEIVER_PORT` | `8090` | Demo receiver port |
+
+| Name                  | Default                         | Purpose                                 |
+| --------------------- | ------------------------------- | --------------------------------------- |
+| `WEBHOOK_URL`         | `http://127.0.0.1:8090/webhook` | Outbound delivery target                |
+| `HTTP_ADDR`           | `8080`                          | API listen port                         |
+| `DATABASE_PATH`       | `webhook.db`                    | SQLite file path                        |
+| `MAX_ATTEMPTS`        | `5`                             | Attempt budget                          |
+| `BASE_DELAY_MS`       | `1000`                          | Backoff base (`delay = base * 2^(n-1)`) |
+| `DELIVERY_TIMEOUT_MS` | `5000`                          | Outbound HTTP timeout                   |
+| `POLL_INTERVAL_MS`    | `200`                           | Worker poll interval                    |
+| `FAKE_RECEIVER_PORT`  | `8090`                          | Demo receiver port                      |
+
 
 ```text
 npm install
@@ -87,13 +89,15 @@ Uses an in-process fake HTTP server and `Worker.runOnce()` with `BASE_DELAY_MS=0
 
 ## Acceptance scenarios and verification
 
-| Scenario | Status | How verified |
-| --- | --- | --- |
-| AC1 Successful delivery | Complete | Manual curl/Postman + automated test `delivered on success` |
-| AC2 Temporary failure and retry | Complete | Manual mode fail→ok + test `retry then delivered` |
-| AC3 Bounded failure | Complete | Leave mode fail until max attempts + test `failed after max attempts` |
-| AC4 Idempotent ingestion | Complete | Duplicate POST → 201 then 200 + test `idempotent ingest` |
-| AC5 Inspectable history | Complete | `GET /events/:eventId` returns status + ordered attempts |
+
+| Scenario                        | Status   | How verified                                                          |
+| ------------------------------- | -------- | --------------------------------------------------------------------- |
+| AC1 Successful delivery         | Complete | Manual curl/Postman + automated test `delivered on success`           |
+| AC2 Temporary failure and retry | Complete | Manual mode fail→ok + test `retry then delivered`                     |
+| AC3 Bounded failure             | Complete | Leave mode fail until max attempts + test `failed after max attempts` |
+| AC4 Idempotent ingestion        | Complete | Duplicate POST → 201 then 200 + test `idempotent ingest`              |
+| AC5 Inspectable history         | Complete | `GET /events/:eventId` returns status + ordered attempts              |
+
 
 No intentional reinterpretation of the brief. Delivery is **at-least-once** across the HTTP boundary (documented below).
 
@@ -136,15 +140,17 @@ npm test
 
 Flow: **accept → store → deliver → inspect**
 
-| Component | Responsibility |
-| --- | --- |
-| `src/http.ts` | `POST /events`, `GET /events/:eventId`, `GET /health` |
-| `src/ingest.ts` | Validate + idempotent accept |
-| `src/store.ts` | SQLite: events + attempts; claim/record |
-| `src/delivery.ts` | Classify, send webhook, backoff, `runOnce` / poll loop |
-| `src/domain.ts` | Types + validation |
-| `src/fakereceiver.ts` | Local demo webhook (`ok` / `fail`) |
-| `src/config.ts` / `src/index.ts` | Env + wiring |
+
+| Component                        | Responsibility                                         |
+| -------------------------------- | ------------------------------------------------------ |
+| `src/http.ts`                    | `POST /events`, `GET /events/:eventId`, `GET /health`  |
+| `src/ingest.ts`                  | Validate + idempotent accept                           |
+| `src/store.ts`                   | SQLite: events + attempts; claim/record                |
+| `src/delivery.ts`                | Classify, send webhook, backoff, `runOnce` / poll loop |
+| `src/domain.ts`                  | Types + validation                                     |
+| `src/fakereceiver.ts`            | Local demo webhook (`ok` / `fail`)                     |
+| `src/config.ts` / `src/index.ts` | Env + wiring                                           |
+
 
 ```
 Client --POST /events--> http --> ingest --> store (pending, due now)
@@ -176,7 +182,7 @@ Client --GET /events/:id--> http --> store (status + ordered attempts)
 
 1. **Event row is the job** — avoids a second jobs table and makes “one logical delivery per eventId” obvious.
 2. **Explicit retry classification** — only temporary classes retry; other 4xx fail immediately so client errors don’t loop.
-3. **`runOnce()` + zero base delay in tests** — deterministic AC coverage without sleep-based flakiness.
+3. `**runOnce()` + zero base delay in tests** — deterministic AC coverage without sleep-based flakiness.
 4. **At-least-once semantics** — honest about crash windows after HTTP 200 before commit; receivers should dedupe on `eventId`.
 
 ## Assumptions and limitations
@@ -215,3 +221,4 @@ Describe one product or system you previously helped ship:
 - **Scale / complexity:** Multiple dependent services consuming inventory in production during a live migration between stores.
 - **Difficult decision:** Maintaining consistency during cutover — we used **best-effort dual writes** with **ETL reconciliation** rather than a hard cutover, accepting temporary divergence windows in exchange for safer migration.
 - **Evidence:** Code is proprietary; no public link is available.
+
