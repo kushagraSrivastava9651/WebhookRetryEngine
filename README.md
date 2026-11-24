@@ -1,4 +1,4 @@
-# 🔁 Webhook Retry Engine
+# Webhook Retry Engine
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js_20+-339933?style=flat-square&logo=nodedotjs&logoColor=white)
@@ -9,7 +9,7 @@ A small, durable webhook delivery service in TypeScript. It accepts events, stor
 
 > Built for a product engineering challenge. Design notes, trade-offs and a demo video are in [SUBMISSION.md](./SUBMISSION.md).
 
-## ✨ Highlights
+## Highlights
 
 - **Idempotent ingest**: `eventId` is the primary key. A duplicate `POST` returns `200` with the existing event, so you never get a second delivery job.
 - **Retry classification**: network errors, timeouts, `408`, `429` and `5xx` are retried. Other `4xx` responses fail at once, so client errors don't loop forever.
@@ -19,7 +19,7 @@ A small, durable webhook delivery service in TypeScript. It accepts events, stor
 - **Deterministic tests**: the tests use `Worker.runOnce()` against an in-process fake receiver, with no sleeps and no external services.
 - **Honest semantics**: delivery is *at-least-once* across the HTTP boundary, so receivers should dedupe on `eventId`.
 
-## 🏗️ Architecture
+## Architecture
 
 ```
             POST /events                         claimDue()
@@ -40,7 +40,7 @@ A small, durable webhook delivery service in TypeScript. It accepts events, stor
 | `src/delivery.ts` | Send, classify, backoff, `runOnce` / poll loop |
 | `src/fakereceiver.ts` | Local demo receiver you can switch between `ok` and `fail` |
 
-## 🚀 Next Steps for Production
+## Next Steps for Production
 
 Postgres with claim leases (`locked_by` / `locked_until`) so multiple workers can run safely · per-endpoint circuit breakers · backoff jitter · dead-letter queue + manual replay · metrics (pending depth, oldest-pending age, exhaustion rate).
 
